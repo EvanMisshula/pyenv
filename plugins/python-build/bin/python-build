@@ -990,7 +990,7 @@ version() {
 
 usage() {
   { version
-    echo "usage: python-build [-g|--debug] [-k|--keep] [-v|--verbose] definition prefix"
+    echo "usage: python-build [-g|--debug] [--32bit] [-k|--keep] [-v|--verbose] definition prefix"
     echo "       python-build --definitions"
   } >&2
 
@@ -1012,6 +1012,7 @@ unset VERBOSE
 unset KEEP_BUILD_PATH
 PYTHON_BUILD_ROOT="$(abs_dirname "$0")/.."
 unset DEBUG
+unset BIT32
 
 parse_options "$@"
 
@@ -1022,6 +1023,7 @@ for option in "${OPTIONS[@]}"; do
     { echo
       echo "  -k/--keep        Do not remove source tree after installation"
       echo "  -g/--debug       Build a debug version"
+      echo "  --32bit          Build a 32bit version"
       echo "  -v/--verbose     Verbose mode: print compilation status to stdout"
       echo "  --definitions    List all built-in definitions"
       echo
@@ -1040,6 +1042,9 @@ for option in "${OPTIONS[@]}"; do
     ;;
   "g" | "debug" )
     DEBUG=true
+    ;;
+  "32bit" )
+    BIT32=true
     ;;
   "version" )
     version
@@ -1122,6 +1127,11 @@ fi
 
 if [ -n "$DEBUG" ]; then
   PYTHON_CONFIGURE_OPTS="--with-pydebug $PYTHON_CONFIGURE_OPTS"
+fi
+
+if [ -n "$BIT32" ]; then
+  export LDFLAGS="-m32 ${LDFLAGS}"
+  export CPPFLAGS="-m32 ${CPPFLAGS}"
 fi
 
 SEED="$(date "+%Y%m%d%H%M%S").$$"

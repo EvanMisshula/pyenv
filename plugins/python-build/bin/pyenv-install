@@ -2,8 +2,8 @@
 #
 # Summary: Install a Python version using the python-build plugin
 #
-# Usage: pyenv install [-f|--force] [-g|--debug] [-k|--keep] [-v|--verbose] <version>
-#        pyenv install [-f|--force] [-g|--debug] [-k|--keep] [-v|--verbose] <definition-file>
+# Usage: pyenv install [-f|--force] [-g|--debug] [--32bit] [-k|--keep] [-v|--verbose] <version>
+#        pyenv install [-f|--force] [-g|--debug] [--32bit] [-k|--keep] [-v|--verbose] <definition-file>
 #        pyenv install -l|--list
 #
 #   -l/--list        List all available versions
@@ -11,6 +11,7 @@
 #   -k/--keep        Keep source tree in $PYENV_BUILD_ROOT after installation
 #                    (defaults to $PYENV_ROOT/sources)
 #   -g/--debug       Build a debug version
+#   --32bit          Build a 32bit version
 #   -v/--verbose     Verbose mode: print compilation status to stdout
 #
 # For detailed information on installing Python versions with
@@ -51,6 +52,7 @@ unset FORCE
 unset KEEP
 unset VERBOSE
 unset DEBUG
+unset BIT32
 
 parse_options "$@"
 for option in "${OPTIONS[@]}"; do
@@ -74,6 +76,9 @@ for option in "${OPTIONS[@]}"; do
     ;;
   "g" | "debug" )
     DEBUG="-g"
+    ;;
+  "32bit" )
+    BIT32="--32bit"
     ;;
   "version" )
     exec python-build --version
@@ -120,6 +125,7 @@ done
 # compute the installation prefix.
 [ -n "$VERSION_NAME" ] || VERSION_NAME="${DEFINITION##*/}"
 [ -n "$DEBUG" ] && VERSION_NAME="${VERSION_NAME}-debug"
+[ -n "$BIT32" ] && VERSION_NAME="${VERSION_NAME}-32bit"
 PREFIX="${PYENV_ROOT}/versions/${VERSION_NAME}"
 
 [ -d "${PREFIX}" ] && PREFIX_EXISTS=1
@@ -167,7 +173,7 @@ trap cleanup SIGINT
 
 # Invoke `python-build` and record the exit status in $STATUS.
 STATUS=0
-python-build $KEEP $VERBOSE $DEBUG "$DEFINITION" "$PREFIX" || STATUS="$?"
+python-build $KEEP $VERBOSE $DEBUG $BIT32 "$DEFINITION" "$PREFIX" || STATUS="$?"
 
 # Display a more helpful message if the definition wasn't found.
 if [ "$STATUS" == "2" ]; then
